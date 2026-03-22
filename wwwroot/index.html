@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8" />
+    <title>Tournaments</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .create-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+            .create-btn:hover {
+                background: #43a047;
+            }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #f0f4f8;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: #e53935;
+            color: white;
+        }
+
+            .delete-btn:hover {
+                background: #c62828;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏆 Tournaments</h1>
+
+        <div class="input-group">
+            <input id="title" placeholder="Tournament name..." />
+            <button class="create-btn" onclick="createTournament()">Create</button>
+        </div>
+
+        <ul id="list"></ul>
+    </div>
+
+    <script>
+        const API_URL = "https://localhost:7190/api/tournaments";
+
+        async function loadTournaments() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+
+            const list = document.getElementById("list");
+            list.innerHTML = "";
+
+            data.forEach(t => {
+                const li = document.createElement("li");
+
+                const text = document.createElement("span");
+                text.innerText = t.title;
+
+                const btn = document.createElement("button");
+                btn.innerText = "Delete";
+                btn.className = "delete-btn";
+
+                btn.onclick = async () => {
+                    await fetch(`${API_URL}/${t.id}`, {
+                        method: "DELETE"
+                    });
+                    loadTournaments();
+                };
+
+                li.appendChild(text);
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+        }
+
+        async function createTournament() {
+            const title = document.getElementById("title").value;
+
+            if (!title) return;
+
+            await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: "",
+                    maxPlayers: 10,
+                    date: new Date().toISOString()
+                })
+            });
+
+            document.getElementById("title").value = "";
+            loadTournaments();
+        }
+
+        loadTournaments();
+    </script>
+
+</body>
+</html>
